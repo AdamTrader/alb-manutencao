@@ -76,3 +76,4 @@ const CHECKLIST_DB = {
     }
     // Para adicionar um novo checklist, adicione uma nova chave como "GE-202": { ... }
 };
+
