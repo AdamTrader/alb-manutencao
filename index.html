@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma de Gestão de Manutenção</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Manifest e tema para PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff"/>
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
@@ -13,14 +16,18 @@
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
         <header class="text-center mb-10">
             <h1 class="text-4xl sm:text-5xl font-bold text-gray-800">Plataforma de Gestão de Manutenção</h1>
-            <p class="text-gray-600 mt-2">Selecione um checklist para começar.</p>
+            <p class="text-gray-600 mt-2">Selecione um checklist para começar. Funciona offline!</p>
         </header>
 
         <main>
+            <div id="install-banner" class="hidden mb-6 p-4 bg-blue-500 text-white rounded-lg shadow-lg justify-between items-center">
+                <span>Instale este app no seu dispositivo para acesso fácil e offline!</span>
+                <button id="install-btn" class="bg-white text-blue-500 font-bold py-2 px-4 rounded-lg hover:bg-blue-100">Instalar</button>
+            </div>
+
             <div class="bg-white rounded-xl shadow-md p-6 transition-shadow duration-300 hover:shadow-lg">
                 <h2 class="text-2xl font-bold text-gray-700 border-b-2 border-gray-200 pb-3 mb-4">Checklists Disponíveis</h2>
                 <div id="checklist-list" class="space-y-4">
-                    <!-- A lista de checklists será inserida aqui -->
                      <a href="./checklist.html?id=GE-201" class="block bg-gray-50 hover:bg-blue-100 p-4 rounded-lg transition-colors duration-200">
                         <h3 class="font-semibold text-blue-700">Inspeção Anual do Gerador Diesel GE-201</h3>
                         <p class="text-sm text-gray-600">Checklist para a manutenção preventiva anual do gerador GE-201.</p>
@@ -30,5 +37,41 @@
             </div>
         </main>
     </div>
+
+    <script>
+        // Registrar o Service Worker para funcionalidade offline
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => console.log('Service Worker registrado com sucesso:', registration))
+                    .catch(error => console.log('Falha ao registrar Service Worker:', error));
+            });
+        }
+
+        // Lógica para o botão de instalação do PWA
+        let deferredPrompt;
+        const installBanner = document.getElementById('install-banner');
+        const installBtn = document.getElementById('install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.style.display = 'flex'; // Mostra o banner
+
+            installBtn.addEventListener('click', () => {
+                installBanner.style.display = 'none';
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('Usuário aceitou a instalação');
+                    } else {
+                        console.log('Usuário recusou a instalação');
+                    }
+                    deferredPrompt = null;
+                });
+            });
+        });
+    </script>
 </body>
 </html>
+
