@@ -1,52 +1,52 @@
-const CACHE_NAME = 'manutencao-cache-v1';
+// Version: 2.0 - Forçando a atualização do cache
+
+const CACHE_NAME = 'plataforma-manutencao-cache-v2'; // Mudei o nome do cache para v2
 const urlsToCache = [
-    '/',
-    'index.html',
-    'checklist.html',
-    'database.js',
-    'https://cdn.tailwindcss.com',
-    'icons/icon-192x192.png',
-    'icons/icon-512x512.png'
+  '/',
+  '/index.html',
+  '/checklist.html',
+  '/checklist-logic.js',
+  '/database.js',
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
 ];
 
-// Evento de instalação: abre o cache e armazena os arquivos principais
+// Instala o Service Worker e armazena os arquivos em cache
 self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('Cache aberto');
-                return cache.addAll(urlsToCache);
-            })
-    );
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Cache aberto');
+        return cache.addAll(urlsToCache);
+      })
+  );
 });
 
-// Evento de fetch: intercepta as requisições e serve do cache se disponível
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                // Se encontrar no cache, retorna a resposta do cache
-                if (response) {
-                    return response;
-                }
-                // Senão, faz a requisição à rede
-                return fetch(event.request);
-            })
-    );
-});
-
-// Evento de ativação: limpa caches antigos
+// Limpa caches antigos
 self.addEventListener('activate', event => {
-    const cacheWhitelist = [CACHE_NAME];
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) {
+            console.log('Service Worker: limpando cache antigo', cache);
+            return caches.delete(cache);
+          }
         })
-    );
+      );
+    })
+  );
 });
+
+// Intercepta as requisições e serve os arquivos do cache (estratégia cache-first)
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // Retorna do cache se encontrar, senão busca na rede
+        return response || fetch(event.request);
+      })
+  );
+});
+
