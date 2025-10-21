@@ -5,6 +5,34 @@ const checklistId = params.get('id');
 const storageKey = `checklist-progress-${checklistId}`;
 const data = CHECKLIST_DB ? CHECKLIST_DB[checklistId] : null;
 
+// --- FUNÇÃO PARA GERAR PDF ---
+function generatePdf() {
+    const pdfButton = document.getElementById('generate-pdf-btn');
+    const originalText = pdfButton.innerHTML;
+    pdfButton.innerHTML = 'Gerando...';
+    pdfButton.disabled = true;
+
+    const element = document.getElementById('content-to-print');
+    const checklistTitle = data.title.replace(/\s+/g, '_');
+    const date = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+    const filename = `Relatorio_${checklistTitle}_${date}.pdf`;
+    
+    const opt = {
+      margin:       0.5,
+      filename:     filename,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // Modo inteligente de quebra de página
+    };
+
+    html2pdf().from(element).set(opt).save().then(() => {
+        pdfButton.innerHTML = originalText;
+        pdfButton.disabled = false;
+    });
+}
+
+
 // --- FUNÇÕES DE LÓGICA ---
 
 function saveProgress() {
@@ -122,7 +150,11 @@ function renderChecklist() {
     document.title = data.title;
     const today = new Date().toISOString().split('T')[0];
 
+    // Adiciona o logo da Air Liquide ao topo do conteúdo a ser impresso
     let html = `
+        <div class="text-center mb-6 print-show">
+            <img src="https://br.airliquide.com/sites/al_br/files/air-liquide.svg" alt="Logo Air Liquide" class="h-12 mx-auto">
+        </div>
         <header class="text-center mb-8 bg-white rounded-xl shadow-lg p-6">
             <h1 class="text-3xl font-bold text-gray-800">${data.title}</h1>
             <p class="text-gray-600 mt-2">${data.description}</p>
@@ -197,6 +229,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderChecklist();
     loadProgress();
 
+    // Event listener para o botão de PDF
+    document.getElementById('generate-pdf-btn').addEventListener('click', generatePdf);
+
     // Event listeners para salvar progresso
     document.getElementById('technician-select').addEventListener('change', (e) => {
         const techInput = document.getElementById('technician-input');
@@ -218,8 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('evidence-upload').addEventListener('change', event => {
         const files = Array.from(event.target.files).slice(0, 10);
         const previewContainer = document.getElementById('evidence-preview');
-        // Não limpa para permitir adicionar mais fotos depois
-        // previewContainer.innerHTML = '';
         files.forEach(file => {
             const reader = new FileReader();
             reader.onload = e => {
