@@ -1,6 +1,6 @@
-// Version: 2.0 - Forçando a atualização do cache
+// Version: 3.0 - Adicionado suporte a PDF e forçando atualização do cache
 
-const CACHE_NAME = 'plataforma-manutencao-cache-v2'; // Mudei o nome do cache para v2
+const CACHE_NAME = 'plataforma-manutencao-cache-v3'; // Mudei o nome do cache para v3
 const urlsToCache = [
   '/',
   '/index.html',
