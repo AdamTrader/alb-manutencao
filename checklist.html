@@ -7,43 +7,31 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#f3f4f6"/>
+    <!-- Biblioteca para gerar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" xintegrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .no-break { page-break-inside: avoid; }
         @media print { .print-hide { display: none; } }
 
-        /* Estilos para os botões de rádio customizados */
-        .task-options input[type="radio"] {
-            display: none; /* Esconde o rádio padrão */
-        }
-
+        .task-options input[type="radio"] { display: none; }
         .task-options label {
-            cursor: pointer;
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            color: #4b5563;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all 0.2s ease-in-out;
+            cursor: pointer; padding: 0.5rem 0.75rem; border-radius: 0.5rem;
+            border: 1px solid #d1d5db; color: #4b5563; font-weight: 600;
+            font-size: 0.875rem; transition: all 0.2s ease-in-out;
         }
-
-        /* Estilos quando o rádio está selecionado */
         .task-options input[type="radio"]:checked + label {
-            color: white;
-            border-color: transparent;
+            color: white; border-color: transparent;
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         }
-
-        .task-options input[value="c"]:checked + label { background-color: #10B981; /* Verde */ }
-        .task-options input[value="nc"]:checked + label { background-color: #EF4444; /* Vermelho */ }
-        .task-options input[value="na"]:checked + label { background-color: #6B7280; /* Cinza */ }
+        .task-options input[value="c"]:checked + label { background-color: #10B981; }
+        .task-options input[value="nc"]:checked + label { background-color: #EF4444; }
+        .task-options input[value="na"]:checked + label { background-color: #6B7280; }
     </style>
 </head>
 <body class="bg-gray-200">
     
-    <!-- Cabeçalho do App com logo e botão de voltar -->
-    <nav class="bg-white shadow-lg sticky top-0 z-10">
+    <nav class="bg-white shadow-lg sticky top-0 z-10 print-hide">
         <div class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
              <a href="./index.html" class="flex items-center space-x-2 text-gray-700 hover:text-blue-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -53,14 +41,20 @@
         </div>
     </nav>
 
-    <!-- Conteúdo principal do checklist -->
-    <div id="main-container" class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <!-- O checklist será renderizado aqui pelo JavaScript -->
+    <!-- Conteúdo principal que será impresso -->
+    <div id="content-to-print">
+        <div id="main-container" class="container mx-auto p-4 sm:p-6 lg:p-8">
+            <!-- O checklist será renderizado aqui pelo JavaScript -->
+        </div>
     </div>
 
     <!-- Rodapé com ações -->
-    <footer class="container mx-auto p-4 sm:p-6 lg:p-8 text-center print-hide">
-        <button id="clear-data-btn" class="flex items-center justify-center mx-auto bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-transform transform hover:scale-105">
+    <footer class="container mx-auto p-4 sm:p-6 lg:p-8 text-center print-hide space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
+        <button id="generate-pdf-btn" class="flex items-center justify-center w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-transform transform hover:scale-105">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            Gerar PDF
+        </button>
+        <button id="clear-data-btn" class="flex items-center justify-center w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-transform transform hover:scale-105">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             Limpar Preenchimento
         </button>
