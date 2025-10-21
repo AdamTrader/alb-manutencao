@@ -17,9 +17,15 @@ function saveProgress() {
     const discipline = document.getElementById('discipline-select').value;
     const executionDate = document.getElementById('execution-date').value;
 
-    // Salvar checkboxes
-    const checkboxes = {};
-    document.querySelectorAll('input[type="checkbox"]').forEach(cb => { checkboxes[cb.id] = cb.checked; });
+    // Salvar status das tarefas (C, NC, NA)
+    const taskStatus = {};
+    document.querySelectorAll('.task-item').forEach(task => {
+        const taskId = task.dataset.taskId;
+        const checkedRadio = task.querySelector(`input[name="${taskId}"]:checked`);
+        if (checkedRadio) {
+            taskStatus[taskId] = checkedRadio.value;
+        }
+    });
     
     // Salvar observações e evidências
     const observations = document.getElementById('observations').value;
@@ -30,7 +36,7 @@ function saveProgress() {
 
     const dataToSave = { 
         header: { technician, discipline, executionDate },
-        checkboxes, 
+        taskStatus,
         observations, 
         evidences 
     };
@@ -59,14 +65,14 @@ function loadProgress() {
             techInput.classList.remove('hidden');
         }
     }
-
-    // Carregar checkboxes
-    if (savedData.checkboxes) {
-        Object.keys(savedData.checkboxes).forEach(id => {
-            const cb = document.getElementById(id);
-            if (cb) {
-                cb.checked = savedData.checkboxes[id];
-                cb.parentElement.classList.toggle('completed', cb.checked);
+    
+    // Carregar status das tarefas
+    if (savedData.taskStatus) {
+        Object.keys(savedData.taskStatus).forEach(taskId => {
+            const savedValue = savedData.taskStatus[taskId];
+            const radioToSelect = document.querySelector(`input[name="${taskId}"][value="${savedValue}"]`);
+            if (radioToSelect) {
+                radioToSelect.checked = true;
             }
         });
     }
@@ -114,7 +120,6 @@ function renderChecklist() {
     }
 
     document.title = data.title;
-
     const today = new Date().toISOString().split('T')[0];
 
     let html = `
@@ -152,7 +157,15 @@ function renderChecklist() {
                 <div class="space-y-4">`;
         section.tasks.forEach((task, index) => {
             const taskId = `task-${section.id}-${index}`;
-            html += `<div class="flex items-center"><input type="checkbox" id="${taskId}" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"><label for="${taskId}" class="ml-3 text-gray-700 cursor-pointer">${task}</label></div>`;
+            html += `
+                <div class="task-item flex flex-col sm:flex-row items-start sm:items-center justify-between py-2 border-b border-gray-100" data-task-id="${taskId}">
+                    <span class="text-gray-700 mb-2 sm:mb-0 sm:mr-4">${task}</span>
+                    <div class="task-options flex items-center space-x-2 flex-shrink-0">
+                        <input type="radio" id="${taskId}-c" name="${taskId}" value="c"><label for="${taskId}-c">C</label>
+                        <input type="radio" id="${taskId}-nc" name="${taskId}" value="nc"><label for="${taskId}-nc">NC</label>
+                        <input type="radio" id="${taskId}-na" name="${taskId}" value="na"><label for="${taskId}-na">NA</label>
+                    </div>
+                </div>`;
         });
         html += `</div></div>`;
     });
@@ -177,13 +190,14 @@ function renderChecklist() {
 // --- INICIALIZAÇÃO E EVENTOS ---
 document.addEventListener('DOMContentLoaded', () => {
     if (!checklistId || !data) {
-        renderChecklist(); // Chamar renderChecklist para mostrar a mensagem de erro
+        renderChecklist(); 
         return;
     }
 
     renderChecklist();
     loadProgress();
 
+    // Event listeners para salvar progresso
     document.getElementById('technician-select').addEventListener('change', (e) => {
         const techInput = document.getElementById('technician-input');
         techInput.classList.toggle('hidden', e.target.value !== 'outro');
@@ -193,19 +207,19 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('technician-input').addEventListener('input', saveProgress);
     document.getElementById('discipline-select').addEventListener('change', saveProgress);
     document.getElementById('execution-date').addEventListener('change', saveProgress);
+    document.getElementById('observations').addEventListener('input', saveProgress);
 
     document.getElementById('main-container').addEventListener('change', e => {
-        if (e.target.type === 'checkbox') {
-            e.target.parentElement.classList.toggle('completed', e.target.checked);
+        if (e.target.type === 'radio') {
             saveProgress();
         }
     });
-    document.getElementById('observations').addEventListener('input', saveProgress);
     
     document.getElementById('evidence-upload').addEventListener('change', event => {
         const files = Array.from(event.target.files).slice(0, 10);
         const previewContainer = document.getElementById('evidence-preview');
-        previewContainer.innerHTML = '';
+        // Não limpa para permitir adicionar mais fotos depois
+        // previewContainer.innerHTML = '';
         files.forEach(file => {
             const reader = new FileReader();
             reader.onload = e => {
